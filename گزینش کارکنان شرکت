@@ -1,0 +1,47 @@
+##################Writing the model in Stan programming language.(save as "worker.stan")
+data {                      
+  int N;            
+  vector[N] x1; 
+vector[N] x2;
+vector[N] y; 
+}
+parameters {
+real alpha0;
+real alpha1;
+real alpha2;
+real<lower=0> sigma;
+}
+model {
+alpha0 ~ normal(0, 100);
+alpha1 ~ normal(0, 100);
+alpha2 ~ normal(0, 100);
+sigma ~ gamma(0.01, 0.01);
+y ~ normal(alpha0 + alpha1 * x1 + alpha2 * x2  , sigma);
+}
+#############################################################################
+############################################################################
+###########R codes
+library(StanHeaders)
+library(inline)
+library(Rcpp)
+library(RcppEigen)
+library(BH)
+x1=c(78, 84, 84, 85, 87, 91, 92, 94, 94, 96, 99, 105, 105, 106, 
+    108, 112, 113, 115, 118, 134)
+x2=c(9, 13, 10, 8, 7, 7, 9, 9, 11, 7, 7, 10, 11, 15, 10, 10, 12, 14, 16, 12)
+N=20
+y=c(5, 6, 7, 7, 8, 9, 8, 11, 9, 10, 7, 10, 11, 15, 10, 10, 12, 
+     14, 16, 12)
+data= list(N=N , x1=x1 , x2=x2 , y=y)
+library(rstan)
+fit = stan(file='worker.stan', data= data,
+               iter = 80000,
+           thin=120,
+               chains = 4)
+print(fit)
+params=extract(fit)
+traceplot(fit)
+stan_hist(fit)
+stan_ac(fit)
+###########################################################
+##########################################################
